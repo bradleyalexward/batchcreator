@@ -1,0 +1,162 @@
+---
+title: "Batch Creator"
+author: 
+ - "**Compiled by:** `r Sys.info()['user']`"
+date: "Compiled on `r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{float}
+  - \usepackage{placeins}
+  - \usepackage{parskip}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+n_selected <- nrow(batch_table)
+```
+
+```{r helpers, include=FALSE}
+marginal_pct <- function(df, cols) {
+  out <- lapply(cols, function(cc) {
+    x <- df[[cc]]
+    tab <- sort(table(x, useNA = "no"), decreasing = TRUE)
+    data.frame(
+      Level = latex_escape(names(tab)),
+      Count = as.integer(tab),
+      Percent = sprintf("%.0f\\%%", 100 * as.numeric(tab) / sum(tab)),
+      stringsAsFactors = FALSE
+    )
+  })
+  names(out) <- cols
+  out
+}
+
+latex_escape <- function(x) {
+  x <- gsub("\\\\", "\\\\textbackslash{}", x)
+  x <- gsub("([#$%&_{}])", "\\\\\\1", x, perl = TRUE)
+  x <- gsub("~", "\\\\textasciitilde{}", x)
+  x <- gsub("\\^", "\\\\textasciicircum{}", x)
+  x
+}
+
+render_table <- function(df, caption = NULL, font_size = 8) {
+  use_longtable <- nrow(df) > 25
+  tab <- knitr::kable(
+    df,
+    caption = caption,
+    row.names = FALSE,
+    format = "latex",
+    booktabs = TRUE,
+    longtable = use_longtable
+  )
+
+  if (requireNamespace("kableExtra", quietly = TRUE)) {
+    latex_opts <- if (use_longtable) "repeat_header" else c("scale_down", "hold_position")
+    return(
+      kableExtra::kable_styling(
+        tab,
+        latex_options = latex_opts,
+        font_size = font_size
+      )
+    )
+  }
+
+  tab
+}
+```
+
+# Batch
+The following batch has been created for **`r omic`**, with **`r n_selected`** samples.
+
+- The seed used to create this batch was **`r seed`**
+
+```{r note}
+if (!is.null(note)) cat(note)
+```
+
+# Composition
+
+\noindent
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+{\Large\textbf{Eligible cohort composition}}\par\medskip
+
+```{r Eligible_cohort_composition, results='asis'}
+eligible_marg <- marginal_pct(eligible, strata_cols)
+
+for (cc in names(eligible_marg)) {
+  cat("{\\centering\\large\\textbf{", latex_escape(cc), "}\\par}\n\\smallskip\n", sep = "")
+
+  tab <- knitr::kable(
+    eligible_marg[[cc]],
+    format = "latex",
+    booktabs = TRUE,
+    row.names = FALSE,
+    col.names = c("", "n", "Percent"),
+    escape = FALSE
+  )
+
+  cat("{\\footnotesize\\centering\n", tab, "\n\\par}\n", sep = "")
+  cat("\\medskip\n")
+}
+```
+
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+{\Large\textbf{Batch composition}}\par\medskip
+
+```{r Batch_composition, results='asis'}
+batch_marg <- marginal_pct(batch, strata_cols)
+
+for (cc in names(batch_marg)) {
+  cat("{\\centering\\large\\textbf{", latex_escape(cc), "}\\par}\n\\smallskip\n", sep = "")
+
+  tab <- knitr::kable(
+    batch_marg[[cc]],
+    format = "latex",
+    booktabs = TRUE,
+    row.names = FALSE,
+    col.names = c("", "n", "Percent"),
+    escape = FALSE
+  )
+
+  cat("{\\footnotesize\\centering\n", tab, "\n\\par}\n", sep = "")
+  cat("\\medskip\n")
+}
+```
+\end{minipage}
+
+\newpage
+# Selected samples
+
+```{r Samples_in_the_batch, results='asis'}
+render_table(batch_table, caption = "Samples in the batch", font_size = 8)
+```
+
+```{r biobank_picklist, results='asis'}
+if (!is.null(biobank_picklist)) {
+  cat("\\newpage")
+  cat("\n**Tube pick list**\n\n")
+  render_table(biobank_picklist, caption = "Tube ID and location (available tubes only)", font_size = 8)
+}
+```
+
+```{r insufficient_tubes, results='asis'}
+if (!is.null(insufficient_tubes) && nrow(insufficient_tubes) > 0) {
+  cat("\\newpage")
+  cat("\n**Samples with insufficient available tubes**\n\n")
+  render_table(insufficient_tubes, font_size = 8)
+}
+```
+
+```{r unmatched_samples, results='asis'}
+if (!is.null(unmatched_samples) && nrow(unmatched_samples) > 0) {
+  cat("\\newpage")
+  cat("\n**Unmatched samples**\n\n")
+  cat("The following selected samples could not be matched to any available tube:\n\n")
+  render_table(unmatched_samples, font_size = 8)
+}
+```

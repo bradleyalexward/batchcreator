@@ -1,0 +1,6 @@
+^LICENSE\.md$
+^README\.Rmd$
+^\.Rproj\.user$
+^\.gitignore$
+^inst/scripts/test_outputs$
+^.*\.Rproj$

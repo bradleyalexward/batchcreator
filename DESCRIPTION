@@ -1,0 +1,36 @@
+Package: batchcreator
+Type: Package
+Title: Create Balanced Wet-Lab Sample Batches and Tube Pick Lists
+Version: 0.1.0
+Authors@R: c(
+    person(
+      given = "Bradley",
+      family = "Ward",
+      email = "bradleyalexward@gmail.com",
+      role = c("aut", "cre")
+    )
+  )
+Description: Tool for creating balanced wet-lab batches from sample metadata,
+    optionally matching selected samples to biobank inventory, generating
+    tube pick lists, updating processing flags, and rendering PDF batch
+    reports. The package is designed for omics workflows where sample
+    selection needs to be reproducible, balanced across strata, and linked
+    to physical inventory.
+License: MIT + file LICENSE
+Depends: 
+    R (>= 4.1.0)
+Imports:
+    stats,
+    tools,
+    utils
+Suggests:
+    kableExtra,
+    knitr,
+    openxlsx,
+    readxl,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
