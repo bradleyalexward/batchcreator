@@ -36,14 +36,6 @@ out <- create_batch(
   biobank = biobank_path,
   used_col = "Used",
   replicates_col = "Replicates",
-  pdf_file = tempfile(fileext = ".pdf")
+  pdf_file = "Batch_1"
 )
 ```
-
-## Development notes
-
-- Update the author, email, and license metadata in `DESCRIPTION` before
-  publishing.
-- Run `devtools::document()` to regenerate `man/` and `NAMESPACE` after future
-  edits.
-- Run `devtools::check()` before pushing a release tag.
